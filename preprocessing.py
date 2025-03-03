@@ -24,8 +24,10 @@ for file in parquet_files:
         # Check original row count
         original_rows = len(df)
         
-        # Skip rows where 'hvfhs_license_num' is 'HV0005'
-        df = df[df['hvfhs_license_num'] != 'HV0005']
+        # Handle rows with 'hvfhs_license_num' as 'HV0005'
+        mask = df['hvfhs_license_num'] == 'HV0005'
+        df.loc[mask, 'originating_base_num'] = df.loc[mask, 'dispatching_base_num']
+        df.loc[mask, 'on_scene_datetime'] = df.loc[mask, 'request_datetime']
 
         # Define essential columns (all except 'airport_fee' and 'wav_match_flag')
         essential_columns = [col for col in df.columns if col not in ['airport_fee', 'wav_match_flag']]
@@ -37,7 +39,7 @@ for file in parquet_files:
         df = df.drop_duplicates()
 
         cleaned_rows = len(df)
-        print(f"Original rows: {original_rows}, After dropping NA, duplicates, and HV0005: {cleaned_rows}")
+        print(f"Original rows: {original_rows}, After dropping NA, duplicates, and handling HV0005: {cleaned_rows}")
 
         # If dataset is too small, do not include it
         if cleaned_rows < 100:
